@@ -1,0 +1,29 @@
+name: Deploy Azure Logic App
+
+on:
+  push:
+    branches:
+      - master  # Ensures the action runs only on commits to the master branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Specifies the runner environment
+    steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v2  # Checks out your repository under $GITHUB_WORKSPACE
+
+    - name: Login to Azure
+      uses: azure/login@v1  # Logs into Azure using the secret credentials
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use GitHub Secrets to store your Azure service principal credentials
+
+    - name: Deploy Logic App using ARM template
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Your Azure Subscription ID
+        resourceGroupName: ${{ secrets.AZURE_RESOURCE_GROUP }}  # Your Azure Resource Group name
+        template: ./azuredeploy.json  # Path to your ARM template file
+        parameters: ./azuredeploy.parameters.json  # Path to your ARM parameters file
+
+    - name: Logout of Azure
+      run: az logout  # Logs out of Azure to secure the session
